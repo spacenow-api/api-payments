@@ -25,6 +25,11 @@ dotenv:
   path: ./.env
   basePath: ./
   include:
+    - DATABASE_SCHEMA
+    - DATABASE_HOST
+    - DATABASE_USERNAME
+    - DATABASE_PASSWORD
+    - REDIS_HOST
     - STRIPE_SECRET_KEY
 
 provider:
@@ -40,6 +45,11 @@ provider:
       - subnet-070ac699acd775765
       - subnet-0eca793083726120c
   environment:
+    DATABASE_SCHEMA: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/DATABASE_SCHEMA~true}
+    DATABASE_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/DATABASE_HOST~true}
+    DATABASE_USERNAME: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/DATABASE_USER~true}
+    DATABASE_PASSWORD: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/DATABASE_PASSWORD~true}
+    REDIS_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/REDIS_HOST~true}
     STRIPE_SECRET_KEY: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/STRIPE_SECRET_KEY~true}
 
 functions:
