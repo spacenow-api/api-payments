@@ -18,7 +18,7 @@ async function getPaymentAccountByUserId(userId) {
   const cacheKey = _rKey(userId);
   const cacheContent = await redis.get(cacheKey)
   if (cacheContent) {
-    return { status: 'OK', result: JSON.parse(cacheContent) }
+    return JSON.parse(cacheContent)
   } else {
     try {
       const userProfileObj = await UserProfile.findOne({ where: { userId } });
@@ -27,9 +27,9 @@ async function getPaymentAccountByUserId(userId) {
         const account = await stripeInstance.accounts.retrieve(userProfileObj.accountId);
         if (!account) throw new Error(`Stripe Account ${userProfileObj.accountId} not found.`);
         await redis.set(cacheKey, JSON.stringify(account))
-        return { status: 'OK', result: account }
+        return account
       } else {
-        return { status: 'EMPTY', result: `User ${userId} does not have Stripe Account ID.` }
+        throw new Error(`User ${userId} does not have Stripe Account ID.`)
       }
     } catch (err) {
       throw err
@@ -51,7 +51,7 @@ async function createPaymentAccountByUserId(userId, accountDetails) {
     // Save cache...
     const cacheKey = _rKey(userId);
     await redis.set(cacheKey, JSON.stringify(accountCreated))
-    return { status: 'OK', result: accountCreated }
+    return accountCreated
   } catch (err) {
     throw err
   }
@@ -71,7 +71,7 @@ async function deletePaymentAccountByUserId(userId) {
       await UserProfile.update({ accountId: null }, { where: { profileId: userProfileObj.profileId } });
       await redis.del(_rKey(userId));
     }
-    return { status: 'OK', result: confirmation }
+    return confirmation
   } catch (err) {
     throw err
   }
