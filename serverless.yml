@@ -1,0 +1,69 @@
+service: api-payments
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-domain-manager
+  - serverless-prune-plugin
+
+custom:
+  domains:
+    default: ${self:service}.${opt:stage, 'sandpit'}.cloud.spacenow.com
+    prod: ${self:service}.spacenow.com
+  customDomain:
+    domainName: ${self:custom.domains.${opt:stage, 'sandpit'}, self:custom.domains.default}
+    basePath: ''
+    stage: ${opt:stage, 'sandpit'}
+    certificateArn: ${ssm:/${opt:stageCert, 'SANDPIT'}/ACM_CERTIFICATE}
+    createRoute53Record: true
+    endpointType: 'regional'
+  prune:
+    automatic: true
+    number: 5
+
+dotenv:
+  path: ./.env
+  basePath: ./
+  include:
+    - STRIPE_SECRET_KEY
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'sandpit'}
+  region: ap-southeast-2
+  vpc:
+    securityGroupIds:
+      - sg-0dbf2b9d996f4c91e
+    subnetIds:
+      - subnet-0c75bbd1ea60481d4
+      - subnet-070ac699acd775765
+      - subnet-0eca793083726120c
+  environment:
+    STRIPE_SECRET_KEY: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/STRIPE_SECRET_KEY~true}
+
+functions:
+  getPaymentAccountByUserId:
+    handler: src/functions/getPaymentAccountByUserId.main
+    events:
+      - http:
+          path: payments/{userId}/account
+          method: get
+          cors: true
+  createPaymentAccountByUserId:
+    handler: src/functions/createPaymentAccountByUserId.main
+    events:
+      - http:
+          path: payments/{userId}/account
+          method: post
+          cors: true
+  deletePaymentAccountByUserId:
+    handler: src/functions/deletePaymentAccountByUserId.main
+    events:
+      - http:
+          path: payments/{userId}/account
+          method: delete
+          cors: true
+
+resources:
+  - ${file(src/resources/api-gateway-errors.yml)}

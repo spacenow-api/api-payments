@@ -1,0 +1,31 @@
+{
+  "name": "api-payments",
+  "version": "1.0.0",
+  "description": "Spacenow payments API.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "./node_modules/.bin/serverless offline -s dev -P 6009",
+    "debug": "export SLS_DEBUG=* && node --inspect ./node_modules/.bin/serverless offline -s dev -P 6009"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spacenow-api/api-payments.git"
+  },
+  "author": "Spacenow",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spacenow-api/api-payments/issues"
+  },
+  "homepage": "https://github.com/spacenow-api/api-payments#readme",
+  "devDependencies": {
+    "aws-sdk": "~2.518.0",
+    "serverless": "~1.50.1",
+    "serverless-domain-manager": "~3.3.0",
+    "serverless-dotenv-plugin": "~2.1.1",
+    "serverless-offline": "~5.10.1",
+    "serverless-prune-plugin": "~1.4.0"
+  },
+  "dependencies": {
+    "stripe": "~7.8.0"
+  }
+}
