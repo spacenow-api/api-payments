@@ -4,14 +4,19 @@ const Stripe = require('stripe')
 
 const { getInstance: redisInstance } = require('./../helpers/redis.server')
 
-const {
-  UserProfile
-} = require('./../models')
+const { UserProfile } = require('./../models')
 
 const redis = redisInstance()
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 const _rKey = (userId) => `__stripe__account__${userId}`
+
+async function getUserProfileByUserId(userId) {
+  const userProfileObj = await UserProfile.findOne({ where: { userId } });
+  if (!userProfileObj)
+    throw new Error(`User ${userId} does not have a valid Profile.`);
+  return userProfileObj
+}
 
 async function getPaymentAccountByUserId(userId) {
   if (!userId) throw new Error(`User ID not found.`)
@@ -21,8 +26,7 @@ async function getPaymentAccountByUserId(userId) {
     return JSON.parse(cacheContent)
   } else {
     try {
-      const userProfileObj = await UserProfile.findOne({ where: { userId } });
-      if (!userProfileObj) throw new Error(`User ${userId} does not have a valid Profile.`);
+      const userProfileObj = await getUserProfileByUserId(userId)
       if (userProfileObj.accountId) {
         const account = await stripeInstance.accounts.retrieve(userProfileObj.accountId);
         if (!account) throw new Error(`Stripe Account ${userProfileObj.accountId} not found.`);
@@ -40,8 +44,7 @@ async function getPaymentAccountByUserId(userId) {
 async function createPaymentAccountByUserId(userId, accountDetails) {
   if (!userId) throw new Error(`User ID not found.`)
   try {
-    const userProfileObj = await UserProfile.findOne({ where: { userId } });
-    if (!userProfileObj) throw new Error(`User ${userId} does not have a valid Profile.`);
+    const userProfileObj = await getUserProfileByUserId(userId)
     if (userProfileObj.accountId) throw new Error(`User ${userId} already has a valid Stripe Account ID: ${userProfileObj.accountId}`);
 
     const accountCreated = await stripeInstance.accounts.create(accountDetails);
@@ -60,8 +63,7 @@ async function createPaymentAccountByUserId(userId, accountDetails) {
 async function deletePaymentAccountByUserId(userId) {
   if (!userId) throw new Error(`User ID not found.`)
   try {
-    const userProfileObj = await UserProfile.findOne({ where: { userId } });
-    if (!userProfileObj) throw new Error(`User ${userId} does not have a valid Profile.`);
+    const userProfileObj = await getUserProfileByUserId(userId)
     let confirmation = {
       id: userProfileObj.accountId,
       deleted: false
@@ -78,7 +80,14 @@ async function deletePaymentAccountByUserId(userId) {
 }
 
 async function getPaymentCardByUserId(userId) {
-
+  try {
+    const { customerId } = await getUserProfileByUserId(userId)
+    if (customerId)
+      return await stripeInstance.customers.retrieve(customerId);
+    throw new Error(`User ${userId} doesn't have a valid customer ID.`)
+  } catch (err) {
+    throw err
+  }
 }
 
 async function createPaymentCardByUserId(userId, { cardName, cardNumber, expMonth, expYear, cvc }) {
