@@ -120,7 +120,7 @@ async function createPaymentCardByUserId(userId, { cardName, cardNumber, expMont
   }
 }
 
-async function deletePaymentCardByUserId(userId, { cardId }) {
+async function deletePaymentCardByUserId(userId, cardId) {
   try {
     const userProfileObj = await getUserProfileByUserId(userId)
     await stripeInstance.customers.deleteSource(userProfileObj.customerId, cardId);

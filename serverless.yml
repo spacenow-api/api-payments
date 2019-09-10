@@ -94,7 +94,7 @@ functions:
     handler: src/functions/deletePaymentCardByUserId.main
     events:
       - http:
-          path: payments/{userId}/card
+          path: payments/{userId}/card/{cardId}
           method: delete
           cors: true
   createPayment:
