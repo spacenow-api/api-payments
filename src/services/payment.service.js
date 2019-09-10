@@ -77,4 +77,28 @@ async function deletePaymentAccountByUserId(userId) {
   }
 }
 
-module.exports = { getPaymentAccountByUserId, createPaymentAccountByUserId, deletePaymentAccountByUserId }
+async function getPaymentCardByUserId(userId) {
+
+}
+
+async function createPaymentCardByUserId(userId, { cardName, cardNumber, expMonth, expYear, cvc }) {
+
+}
+
+async function deletePaymentCardByUserId(userId, { cardId }) {
+
+}
+
+async function doPayment() {
+
+}
+
+module.exports = {
+  getPaymentAccountByUserId,
+  createPaymentAccountByUserId,
+  deletePaymentAccountByUserId,
+  getPaymentCardByUserId,
+  createPaymentCardByUserId,
+  deletePaymentCardByUserId,
+  doPayment
+}

@@ -74,6 +74,27 @@ functions:
           path: payments/{userId}/account
           method: delete
           cors: true
+  getPaymentCardByUserId:
+    handler: src/functions/getPaymentCardByUserId.main
+    events:
+      - http:
+          path: payments/{userId}/card
+          method: get
+          cors: true
+  createPaymentCardByUserId:
+    handler: src/functions/createPaymentCardByUserId.main
+    events:
+      - http:
+          path: payments/{userId}/card
+          method: post
+          cors: true
+  deletePaymentCardByUserId:
+    handler: src/functions/deletePaymentCardByUserId.main
+    events:
+      - http:
+          path: payments/{userId}/card
+          method: delete
+          cors: true
 
 resources:
   - ${file(src/resources/api-gateway-errors.yml)}
