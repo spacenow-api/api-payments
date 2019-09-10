@@ -31,7 +31,7 @@ dotenv:
     - DATABASE_PASSWORD
     - REDIS_HOST
     - STRIPE_SECRET_KEY
-    - BOOKINGS_API_HOST
+    - API_BOOKING
 
 provider:
   name: aws
@@ -52,7 +52,7 @@ provider:
     DATABASE_PASSWORD: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/DATABASE_PASSWORD~true}
     REDIS_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/REDIS_HOST~true}
     STRIPE_SECRET_KEY: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/STRIPE_SECRET_KEY~true}
-    BOOKINGS_API_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/BOOKINGS_API_HOST~true}
+    API_BOOKING: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/API_BOOKING~true}
 
 functions:
   getPaymentAccountByUserId:
