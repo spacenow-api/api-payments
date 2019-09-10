@@ -3,8 +3,14 @@
 const Stripe = require('stripe')
 
 const { getInstance: redisInstance } = require('./../helpers/redis.server')
+const bookingService = require('./booking.service')
 
-const { User, UserProfile } = require('./../models')
+const {
+  User,
+  UserProfile,
+  Listing,
+  Location
+} = require('./../models')
 
 const redis = redisInstance()
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -124,8 +130,50 @@ async function deletePaymentCardByUserId(userId, { cardId }) {
   }
 }
 
-async function doPayment() {
-
+async function doPayment(userId, { cardId, bookingId }) {
+  if (!cardId || !bookingId)
+    throw new Error('Payment details are incorrect or missing.')
+  try {
+    const userGuestObj = await User.findOne({ where: { id: userId } })
+    const userGuestProfileObj = await getUserProfileByUserId(userId)
+    const { data: bookingObj } = await bookingService.getBookingById(bookingId)
+    const userHostObj = await User.findOne({ where: { id: bookingObj.hostId } })
+    const userHostProfileObj = await getUserProfileByUserId(bookingObj.hostId)
+    const listingObj = await Listing.findOne({ where: { id: bookingObj.listingId } })
+    const locationObj = await Location.findOne({ where: { id: listingObj.locationId } })
+    const stripeCharge = await stripeInstance.charges.create({
+      amount: Math.round(bookingObj.totalPrice * 100),
+      currency: bookingObj.currency,
+      customer: userGuestProfileObj.customerId,
+      source: cardId,
+      description: `Reservation: ${bookingId}`,
+      metadata: {
+        reservationId: bookingId,
+        listId: listingObj.id,
+        title: listingObj.title,
+        guestEmail: userGuestObj.email,
+        amount: bookingObj.totalPrice,
+        customerId: userGuestProfileObj.customerId,
+        hostName: userHostProfileObj.firstName,
+        listingAddress: `${locationObj.address}, ${locationObj.city}  ${locationObj.state} ${locationObj.zipcode}`,
+      }
+    })
+    await bookingService.onUpdateStateById(bookingId, bookingObj.bookingType)
+    await bookingService.onUpdateBookingChargeAndCard(bookingId, cardId, stripeCharge.id)
+    await bookingService.onUpdateTransaction(
+      bookingId,
+      stripeCharge.id,
+      userGuestObj.email,
+      userGuestObj.id,
+      userHostObj.email,
+      userHostObj.id,
+      Math.round(bookingObj.totalPrice * 100) / 100,
+      bookingObj.currency
+    )
+    return { status: 'OK' }
+  } catch (err) {
+    throw err
+  }
 }
 
 module.exports = {

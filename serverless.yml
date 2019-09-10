@@ -95,6 +95,13 @@ functions:
           path: payments/{userId}/card
           method: delete
           cors: true
+  createPayment:
+    handler: src/functions/createPayment.main
+    events:
+      - http:
+          path: payments/{userId}/create
+          method: post
+          cors: true
 
 resources:
   - ${file(src/resources/api-gateway-errors.yml)}
