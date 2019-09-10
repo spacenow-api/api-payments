@@ -4,7 +4,7 @@ const Stripe = require('stripe')
 
 const { getInstance: redisInstance } = require('./../helpers/redis.server')
 
-const { UserProfile } = require('./../models')
+const { User, UserProfile } = require('./../models')
 
 const redis = redisInstance()
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -81,10 +81,13 @@ async function deletePaymentAccountByUserId(userId) {
 
 async function getPaymentCardByUserId(userId) {
   try {
-    const { customerId } = await getUserProfileByUserId(userId)
-    if (customerId)
-      return await stripeInstance.customers.retrieve(customerId);
-    throw new Error(`User ${userId} doesn't have a valid customer ID.`)
+    const userProfileObj = await getUserProfileByUserId(userId)
+    if (userProfileObj.customerId)
+      return stripeInstance.customers.retrieve(userProfileObj.customerId);
+    const userObj = await User.findOne({ where: { id: userId } })
+    const customerData = await stripeInstance.customers.create({ email: userObj.email })
+    await UserProfile.update({ customerId: customerData.id }, { where: { userId } })
+    return stripeInstance.customers.retrieve(customerData.id);
   } catch (err) {
     throw err
   }
@@ -105,14 +108,20 @@ async function createPaymentCardByUserId(userId, { cardName, cardNumber, expMont
     })
     const userProfileObj = await getUserProfileByUserId(userId)
     await stripeInstance.customers.createSource(userProfileObj.customerId, { source: tokenCard.id });
-    return await getPaymentCardByUserId(userId)
+    return getPaymentCardByUserId(userId)
   } catch (err) {
     throw err
   }
 }
 
 async function deletePaymentCardByUserId(userId, { cardId }) {
-
+  try {
+    const userProfileObj = await getUserProfileByUserId(userId)
+    await stripeInstance.customers.deleteSource(userProfileObj.customerId, cardId);
+    return getPaymentCardByUserId(userId)
+  } catch (err) {
+    throw err
+  }
 }
 
 async function doPayment() {
