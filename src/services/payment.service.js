@@ -91,7 +91,24 @@ async function getPaymentCardByUserId(userId) {
 }
 
 async function createPaymentCardByUserId(userId, { cardName, cardNumber, expMonth, expYear, cvc }) {
-
+  if (!cardName || !cardNumber || !expMonth || !expYear || !cvc)
+    throw new Error('Incorrect card details or missing.')
+  try {
+    const tokenCard = await stripeInstance.tokens.create({
+      card: {
+        name: cardName,
+        number: cardNumber,
+        exp_month: expMonth,
+        exp_year: expYear,
+        cvc: cvc
+      }
+    })
+    const userProfileObj = await getUserProfileByUserId(userId)
+    await stripeInstance.customers.createSource(userProfileObj.customerId, { source: tokenCard.id });
+    return await getPaymentCardByUserId(userId)
+  } catch (err) {
+    throw err
+  }
 }
 
 async function deletePaymentCardByUserId(userId, { cardId }) {
