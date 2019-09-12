@@ -176,7 +176,7 @@ async function doPayment(userId, { cardId, bookingId }) {
     )
     // Send Emails...
     emailService.sendBookingConfirmation(bookingObj, listingObj, locationObj, { ...userHostObj, ...userHostProfileObj }, { ...userGuestObj, ...userGuestProfileObj })
-    return { status: 'OK' }
+    return { status: 'OK', bookingId, bookingState: bookingObj.bookingState }
   } catch (err) {
     throw err
   }
