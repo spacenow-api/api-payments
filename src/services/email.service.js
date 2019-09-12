@@ -21,6 +21,7 @@ module.exports = {
       const checkInShort = moment(bookingObj.checkIn).tz('Australia/Sydney').format('Do MMM').toString()
       // To host...
       const hostMetadata = {
+        user: hostObj.firstName,
         hostName: hostObj.firstName,
         guestName: guestObj.firstName,
         checkinDateShort: checkInShort
@@ -28,6 +29,7 @@ module.exports = {
       send('booking-instant-email-host', hostObj.email, hostMetadata)
       // To guest...
       const guestMetada = {
+        user: guestObj.firstName,
         hostName: hostObj.firstName,
         guestName: guestObj.firstName,
         city: locationObj.city,
