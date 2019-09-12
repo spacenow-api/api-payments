@@ -4,6 +4,7 @@ const Stripe = require('stripe')
 
 const { getInstance: redisInstance } = require('./../helpers/redis.server')
 const bookingService = require('./booking.service')
+const emailService = require('./email.service')
 
 const {
   User,
@@ -18,7 +19,7 @@ const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
 const _rKey = (userId) => `__stripe__account__${userId}`
 
 async function getUserProfileByUserId(userId) {
-  const userProfileObj = await UserProfile.findOne({ where: { userId } });
+  const userProfileObj = await UserProfile.findOne({ where: { userId }, raw: true });
   if (!userProfileObj)
     throw new Error(`User ${userId} does not have a valid Profile.`);
   return userProfileObj
@@ -134,13 +135,15 @@ async function doPayment(userId, { cardId, bookingId }) {
   if (!cardId || !bookingId)
     throw new Error('Payment details are incorrect or missing.')
   try {
-    const userGuestObj = await User.findOne({ where: { id: userId } })
+    // Getting necessary data...
+    const userGuestObj = await User.findOne({ where: { id: userId }, raw: true })
     const userGuestProfileObj = await getUserProfileByUserId(userId)
     const { data: bookingObj } = await bookingService.getBookingById(bookingId)
-    const userHostObj = await User.findOne({ where: { id: bookingObj.hostId } })
+    const userHostObj = await User.findOne({ where: { id: bookingObj.hostId }, raw: true })
     const userHostProfileObj = await getUserProfileByUserId(bookingObj.hostId)
-    const listingObj = await Listing.findOne({ where: { id: bookingObj.listingId } })
-    const locationObj = await Location.findOne({ where: { id: listingObj.locationId } })
+    const listingObj = await Listing.findOne({ where: { id: bookingObj.listingId }, raw: true })
+    const locationObj = await Location.findOne({ where: { id: listingObj.locationId }, raw: true })
+    // Doing payment by Stripe
     const stripeCharge = await stripeInstance.charges.create({
       amount: Math.round(bookingObj.totalPrice * 100),
       currency: bookingObj.currency,
@@ -158,6 +161,7 @@ async function doPayment(userId, { cardId, bookingId }) {
         listingAddress: `${locationObj.address}, ${locationObj.city}  ${locationObj.state} ${locationObj.zipcode}`,
       }
     })
+    // Updating booking and transaction...
     await bookingService.onUpdateStateById(bookingId, bookingObj.bookingType)
     await bookingService.onUpdateBookingChargeAndCard(bookingId, cardId, stripeCharge.id)
     await bookingService.onUpdateTransaction(
@@ -170,6 +174,8 @@ async function doPayment(userId, { cardId, bookingId }) {
       Math.round(bookingObj.totalPrice * 100) / 100,
       bookingObj.currency
     )
+    // Send Emails...
+    emailService.sendBookingConfirmation(bookingObj, listingObj, locationObj, { ...userHostObj, ...userHostProfileObj }, { ...userGuestObj, ...userGuestProfileObj })
     return { status: 'OK' }
   } catch (err) {
     throw err

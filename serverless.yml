@@ -32,6 +32,7 @@ dotenv:
     - REDIS_HOST
     - STRIPE_SECRET_KEY
     - API_BOOKING
+    - EMAILS_API
 
 provider:
   name: aws
@@ -53,6 +54,7 @@ provider:
     REDIS_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/REDIS_HOST~true}
     STRIPE_SECRET_KEY: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/STRIPE_SECRET_KEY~true}
     API_BOOKING: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/API_BOOKING~true}
+    EMAILS_API: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/EMAILS_API~true}
 
 functions:
   getPaymentAccountByUserId:

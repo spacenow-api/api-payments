@@ -546,7 +546,7 @@ aws-sdk@~2.518.0:
     uuid "3.3.2"
     xml2js "0.4.19"
 
-axios@^0.19.0:
+axios@~0.19.0:
   version "0.19.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.19.0.tgz#8e09bff3d9122e133f7b8101c8fbdd00ed3d2ab8"
   dependencies:
