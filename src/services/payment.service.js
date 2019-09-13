@@ -162,7 +162,7 @@ async function doPayment(userId, { cardId, bookingId }) {
       }
     })
     // Updating booking and transaction...
-    await bookingService.onUpdateStateById(bookingId, bookingObj.bookingType)
+    const newBookingState = await bookingService.onUpdateStateById(bookingId, bookingObj.bookingType)
     await bookingService.onUpdateBookingChargeAndCard(bookingId, cardId, stripeCharge.id)
     await bookingService.onUpdateTransaction(
       bookingId,
@@ -175,8 +175,8 @@ async function doPayment(userId, { cardId, bookingId }) {
       bookingObj.currency
     )
     // Send Emails...
-    emailService.sendBookingConfirmation(bookingObj, listingObj, locationObj, { ...userHostObj, ...userHostProfileObj }, { ...userGuestObj, ...userGuestProfileObj })
-    return { status: 'OK', bookingId, bookingState: bookingObj.bookingState }
+    // await emailService.sendBookingConfirmation(bookingObj, listingObj, locationObj, { ...userHostObj, ...userHostProfileObj }, { ...userGuestObj, ...userGuestProfileObj })
+    return { status: 'OK', bookingId, bookingState: newBookingState }
   } catch (err) {
     throw err
   }

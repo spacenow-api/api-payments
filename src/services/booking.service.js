@@ -11,13 +11,15 @@ module.exports = {
   },
 
   onUpdateStateById: async (bookingId, bookingType) => {
+    let bookingData
     if (!bookingType)
       throw new Error('Booking Type incorrect or missing.')
     if (bookingType === 'request') {
-      return axios.put(`${process.env.API_BOOKING}/request/${bookingId}`)
+      bookingData = await axios.put(`${process.env.API_BOOKING}/request/${bookingId}`)
     } else {
-      return axios.put(`${process.env.API_BOOKING}/approve/${bookingId}`)
+      bookingData = await axios.put(`${process.env.API_BOOKING}/approve/${bookingId}`)
     }
+    return bookingData.data.bookingState
   },
 
   onUpdateBookingChargeAndCard: async (bookingId, cardId, chargeId) => {
