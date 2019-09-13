@@ -19,7 +19,7 @@ module.exports = {
     } else {
       bookingData = await axios.put(`${process.env.API_BOOKING}/approve/${bookingId}`)
     }
-    return bookingData.data.bookingState
+    return bookingData.data.data.bookingState
   },
 
   onUpdateBookingChargeAndCard: async (bookingId, cardId, chargeId) => {
