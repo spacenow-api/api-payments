@@ -22,25 +22,6 @@ function send(templateName, destination, templateData) {
   })
 }
 
-function getPeriod(reservations, periodType) {
-  let count = 1
-  if (reservations && reservations.length > 0)
-    count = reservations.length
-  let period = ''
-  switch (periodType) {
-    case 'weekly': {
-      period = count > 1 ? 'Weeks' : 'Week'
-    }
-    case 'monthly': {
-      period = count > 1 ? 'Months' : 'Month'
-    }
-    default: {
-      period = count > 1 ? 'Days' : 'Day'
-    }
-  }
-  return `${count} ${period}`
-}
-
 async function getCoverPhotoPath(listingId) {
   const listingPhotosArray = await ListingPhotos.findAll({ where: { listingId } })
   if (listingPhotosArray && listingPhotosArray.length > 0) {
@@ -73,6 +54,53 @@ async function getProfilePicture(userId) {
   if (userProfileObj)
     return userProfileObj.picture
   return ''
+}
+
+const _period = (reservations, periodType) => {
+  let count = 1
+  if (reservations && reservations.length > 0)
+    count = reservations.length
+  let period = ''
+  switch (periodType) {
+    case 'weekly': {
+      period = count > 1 ? 'Weeks' : 'Week'
+    }
+    case 'monthly': {
+      period = count > 1 ? 'Months' : 'Month'
+    }
+    default: {
+      period = count > 1 ? 'Days' : 'Day'
+    }
+  }
+  return `${count} ${period}`
+}
+
+/*
+  {
+    month: 'September',
+    days: [
+      {
+        number: 1
+      }
+    ]
+  }
+ */
+const _reservations = (bookingObj) => {
+  if (bookingObj.priceType !== 'daily') return []
+  const reservations = []
+  const originalReservations = bookingObj.reservations
+  for (let i = 0; i < originalReservations.length; i += 1) {
+    const mInstance = moment(originalReservations[i])
+    const monthName = mInstance.format('MMMM')
+    let reservationObj = reservations.find(o => o.month === monthName)
+    if (!reservationObj) {
+      reservationObj = { month: '', days: [] }
+      reservations.push(reservationObj)
+    }
+    reservationObj.month = monthName
+    reservationObj.days.push({ number: mInstance.format('D') })
+  }
+  return reservations
 }
 
 const _round = (value) => Math.round(value * 100) / 100
@@ -108,7 +136,7 @@ module.exports = {
         checkOutDate: checkOut,
         listTitle: listingObj.title,
         listAddress: `${locationObj.address1}, ${locationObj.city}`,
-        totalPeriod: `${getPeriod(bookingObj.reservations, bookingObj.priceType)}`,
+        totalPeriod: `${_period(bookingObj.reservations, bookingObj.priceType)}`,
         basePrice: bookingObj.basePrice,
         priceType: bookingObj.priceType,
         coverPhoto: coverPhoto,
@@ -134,16 +162,7 @@ module.exports = {
         serviceFee: _fee(bookingObj.basePrice, bookingObj.guestServiceFee),
         totalPrice: _round(bookingObj.totalPrice),
         isDaily: bookingObj.priceType === 'daily',
-        reservations: [
-          {
-            month: 'September',
-            days: [
-              {
-                number: 1
-              }
-            ]
-          }
-        ],
+        reservations: _reservations(bookingObj),
         timeTable: {
           monOpen: '08:00',
           tueOpen: '08:00',
