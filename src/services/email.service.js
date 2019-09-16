@@ -13,15 +13,16 @@ const {
   ListingAccessHours
 } = require('./../models')
 
-function send(templateName, destination, templateData) {
-  axios.post(`${process.env.EMAILS_API}/email/send`, {
-    template: templateName,
-    data: JSON.stringify({ email: destination, ...templateData })
-  }).then(({ data }) => {
+async function send(templateName, destination, templateData) {
+  try {
+    const { data } = await axios.post(`${process.env.EMAILS_API}/email/send`, {
+      template: templateName,
+      data: JSON.stringify({ email: destination, ...templateData })
+    });
     console.info(`Email '${templateName}' send with success to '${destination}'.\nMessage ID: ${data.MessageId}`)
-  }).catch((err) => {
+  } catch (err) {
     console.error(`Problems to send email '${templateName}' to '${destination}'.\nError: `, err)
-  })
+  }
 }
 
 async function getCoverPhotoPath(listingId) {
@@ -56,6 +57,27 @@ async function getProfilePicture(userId) {
   if (userProfileObj)
     return userProfileObj.picture
   return ''
+}
+
+async function getTimeAvailability(listingId) {
+  const accessDaysObj = await ListingAccessDays.findOne({ where: { listingId }, attributes: ['id'] })
+  const accessHours = await ListingAccessHours.findAll({ where: { listingAccessDaysId: accessDaysObj.id } })
+  let availability = []
+  for (let i = 0; i < 7; i += 1) {
+    let dayValue = ""
+    const dayOf = accessHours.find(o => o.weekday == i)
+    if (dayOf && dayOf.allday) {
+      dayValue = '24 Hours'
+    } else if (dayOf) {
+      const hourOpen = moment(dayOf.openHour).tz('Australia/Sydney').format('hh:mm A').toString()
+      const hourClose = moment(dayOf.closeHour).tz('Australia/Sydney').format('hh:mm A').toString()
+      dayValue = `${hourOpen} to ${hourClose}`
+    } else {
+      dayValue = 'Closed'
+    }
+    availability[i] = dayValue
+  }
+  return availability
 }
 
 const _period = (reservations, periodType) => {
@@ -93,27 +115,6 @@ const _reservations = (bookingObj) => {
     reservationObj.days.push({ number: mInstance.format('D') })
   }
   return reservations
-}
-
-async function getTimeAvailability(listingId) {
-  const accessDaysObj = await ListingAccessDays.findOne({ where: { listingId }, attributes: ['id'] })
-  const accessHours = await ListingAccessHours.findAll({ where: { listingAccessDaysId: accessDaysObj.id } })
-  let availability = []
-  for (let i = 0; i < 7; i += 1) {
-    let dayValue = ""
-    const dayOf = accessHours.find(o => o.weekday == i)
-    if (dayOf && dayOf.allday) {
-      dayValue = '24 Hours'
-    } else if (dayOf) {
-      const hourOpen = moment(dayOf.openHour).tz('Australia/Sydney').format('hh:mm A').toString()
-      const hourClose = moment(dayOf.closeHour).tz('Australia/Sydney').format('hh:mm A').toString()
-      dayValue = `${hourOpen} to ${hourClose}`
-    } else {
-      dayValue = 'Closed'
-    }
-    availability[i] = dayValue
-  }
-  return availability
 }
 
 const _round = (value) => Math.round(value * 100) / 100
@@ -157,7 +158,7 @@ module.exports = {
         categoryName: categoryAndSubObj.category,
         subCategoryName: categoryAndSubObj.subCaregory
       }
-      send('booking-instant-email-host', hostObj.email, hostMetadata)
+      await send('booking-instant-email-host', hostObj.email, hostMetadata)
       // To guest...
       const guestMetada = {
         user: guestObj.firstName,
@@ -179,7 +180,7 @@ module.exports = {
         reservations: _reservations(bookingObj),
         timeTable: timeAvailability
       }
-      send('booking-instant-email-guest', guestObj.email, guestMetada)
+      await send('booking-instant-email-guest', guestObj.email, guestMetada)
     } else {
       // Request booking to host...
       const hostMetadata = {
@@ -193,7 +194,7 @@ module.exports = {
         acceptLink: _generateAcceptLink(bookingObj.bookingId, hostObj.id),
         declineLink: _generateDeclineLink(bookingObj.bookingId, hostObj.id)
       }
-      send('booking-request-email-host', hostObj.email, hostMetadata)
+      await send('booking-request-email-host', hostObj.email, hostMetadata)
       // To guest...
       const guestMetadata = {
         user: guestObj.firstName,
@@ -202,7 +203,7 @@ module.exports = {
         hostName: hostObj.firstName,
         listTitle: listingObj.title
       }
-      send('booking-request-email-guest', guestObj.email, guestMetadata)
+      await send('booking-request-email-guest', guestObj.email, guestMetadata)
     }
   }
 }
