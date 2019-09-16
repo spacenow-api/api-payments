@@ -95,27 +95,6 @@ const _reservations = (bookingObj) => {
   return reservations
 }
 
-/*
-{
-  monOpen: '08:00',
-  tueOpen: '08:00',
-  wedOpen: '08:00',
-  thuOpen: '08:00',
-  friOpen: '08:00',
-  satOpen: '08:00',
-  sunOpen: '08:00',
-  monClose: '17:00',
-  tueClose: '17:00',
-  wedClose: '17:00',
-  thuClose: '17:00',
-  friClose: '17:00',
-  satClose: '17:00',
-  sunClose: '17:00'
-}
-[
-  value: ""
-]
- */
 async function getTimeAvailability(listingId) {
   const accessDaysObj = await ListingAccessDays.findOne({ where: { listingId }, attributes: ['id'] })
   const accessHours = await ListingAccessHours.findAll({ where: { listingAccessDaysId: accessDaysObj.id } })
