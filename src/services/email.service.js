@@ -1,5 +1,6 @@
 'use strict'
 
+const crypto = require('crypto')
 const axios = require('axios')
 const moment = require('moment')
 
@@ -76,9 +77,15 @@ async function getProfilePicture(userId) {
 
 const _round = (value) => Math.round(value * 100) / 100
 
-const getTotalSpaceWithoutFee = (basePrice, quantity = 1, period) => _round(basePrice * quantity * period)
+const _fee = (basePrice, guestServiceFee) => _round(basePrice * guestServiceFee)
 
-const getFee = (basePrice, guestServiceFee) => _round(basePrice * guestServiceFee)
+const _totalSpaceWithoutFee = (basePrice, quantity = 1, period) => _round(basePrice * quantity * period)
+
+const _hash = value => crypto.createHash('sha256').update(value, 'utf8').digest('hex')
+
+const _generateAcceptLink = (bookingId, hostId) => `${process.env.WEBSITE_URL}/account/bookings?b=${bookingId}&a=${_hash(hostId + 'APPROVE')}`
+
+const _generateDeclineLink = (bookingId, hostId) => `${process.env.WEBSITE_URL}/account/bookings?b=${bookingId}&a=${_hash(hostId + 'DECLINE')}`
 
 module.exports = {
 
@@ -123,8 +130,8 @@ module.exports = {
         listTitle: listingObj.title,
         fullAddress: `${locationObj.address1}, ${locationObj.city}`,
         basePrice: bookingObj.basePrice,
-        totalSpace: getTotalSpaceWithoutFee(bookingObj.basePrice, bookingObj.quantity, bookingObj.period),
-        serviceFee: getFee(bookingObj.basePrice, bookingObj.guestServiceFee),
+        totalSpace: _totalSpaceWithoutFee(bookingObj.basePrice, bookingObj.quantity, bookingObj.period),
+        serviceFee: _fee(bookingObj.basePrice, bookingObj.guestServiceFee),
         totalPrice: _round(bookingObj.totalPrice),
         isDaily: bookingObj.priceType === 'daily',
         reservations: [
@@ -164,7 +171,9 @@ module.exports = {
         checkInDate: checkIn,
         checkOutDate: checkOut,
         basePrice: bookingObj.basePrice,
-        total: bookingObj.totalPrice
+        total: bookingObj.totalPrice,
+        acceptLink: _generateAcceptLink(bookingId, hostObj.id),
+        declineLink: _generateDeclineLink(bookingId, hostObj.id)
       }
       send('booking-request-email-host', hostObj.email, hostMetadata)
       // To guest...
