@@ -8,7 +8,9 @@ const {
   UserProfile,
   ListingPhotos,
   ListSettings,
-  ListSettingsParent
+  ListSettingsParent,
+  ListingAccessDays,
+  ListingAccessHours
 } = require('./../models')
 
 function send(templateName, destination, templateData) {
@@ -26,9 +28,9 @@ async function getCoverPhotoPath(listingId) {
   const listingPhotosArray = await ListingPhotos.findAll({ where: { listingId } })
   if (listingPhotosArray && listingPhotosArray.length > 0) {
     const coverPhoto = listingPhotosArray.filter(o => o.isCover)
-    if (!coverPhoto)
-      return listingPhotosArray[0].name
-    return coverPhoto[0].name
+    if (coverPhoto && coverPhoto.length > 0)
+      return coverPhoto[0].name
+    return listingPhotosArray[0].name
   }
   return ''
 }
@@ -75,16 +77,6 @@ const _period = (reservations, periodType) => {
   return `${count} ${period}`
 }
 
-/*
-  {
-    month: 'September',
-    days: [
-      {
-        number: 1
-      }
-    ]
-  }
- */
 const _reservations = (bookingObj) => {
   if (bookingObj.priceType !== 'daily') return []
   const reservations = []
@@ -101,6 +93,48 @@ const _reservations = (bookingObj) => {
     reservationObj.days.push({ number: mInstance.format('D') })
   }
   return reservations
+}
+
+/*
+{
+  monOpen: '08:00',
+  tueOpen: '08:00',
+  wedOpen: '08:00',
+  thuOpen: '08:00',
+  friOpen: '08:00',
+  satOpen: '08:00',
+  sunOpen: '08:00',
+  monClose: '17:00',
+  tueClose: '17:00',
+  wedClose: '17:00',
+  thuClose: '17:00',
+  friClose: '17:00',
+  satClose: '17:00',
+  sunClose: '17:00'
+}
+[
+  value: ""
+]
+ */
+async function getTimeAvailability(listingId) {
+  const accessDaysObj = await ListingAccessDays.findOne({ where: { listingId }, attributes: ['id'] })
+  const accessHours = await ListingAccessHours.findAll({ where: { listingAccessDaysId: accessDaysObj.id } })
+  let availability = []
+  for (let i = 0; i < 7; i += 1) {
+    let dayValue = ""
+    const dayOf = accessHours.find(o => o.weekday == i)
+    if (dayOf && dayOf.allday) {
+      dayValue = '24 Hours'
+    } else if (dayOf) {
+      const hourOpen = moment(dayOf.openHour).tz('Australia/Sydney').format('hh:mm A').toString()
+      const hourClose = moment(dayOf.closeHour).tz('Australia/Sydney').format('hh:mm A').toString()
+      dayValue = `${hourOpen} to ${hourClose}`
+    } else {
+      dayValue = 'Closed'
+    }
+    availability[i] = dayValue
+  }
+  return availability
 }
 
 const _round = (value) => Math.round(value * 100) / 100
@@ -125,6 +159,7 @@ module.exports = {
     const categoryAndSubObj = await getCategoryAndSubNames(listingObj.listSettingsParentId)
     const coverPhoto = await getCoverPhotoPath(listingObj.id)
     const userProfilePicture = await getProfilePicture(bookingObj.hostId)
+    const timeAvailability = await getTimeAvailability(listingObj.id)
     if (bookingObj.bookingType === 'instant') {
       // To host...
       const hostMetadata = {
@@ -163,22 +198,7 @@ module.exports = {
         totalPrice: _round(bookingObj.totalPrice),
         isDaily: bookingObj.priceType === 'daily',
         reservations: _reservations(bookingObj),
-        timeTable: {
-          monOpen: '08:00',
-          tueOpen: '08:00',
-          wedOpen: '08:00',
-          thuOpen: '08:00',
-          friOpen: '08:00',
-          satOpen: '08:00',
-          sunOpen: '08:00',
-          monClose: '17:00',
-          tueClose: '17:00',
-          wedClose: '17:00',
-          thuClose: '17:00',
-          friClose: '17:00',
-          satClose: '17:00',
-          sunClose: '17:00'
-        }
+        timeTable: timeAvailability
       }
       send('booking-instant-email-guest', guestObj.email, guestMetada)
     } else {

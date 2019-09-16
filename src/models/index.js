@@ -15,6 +15,8 @@ const Transaction = require('./../models/transaction.model')(sequelize, DataType
 const ListingPhotos = require('./../models/listingPhotos.model')(sequelize, DataTypes)
 const ListSettingsParent = require('./../models/listSettingsParent.model')(sequelize, DataTypes)
 const ListSettings = require('./../models/listSettings.model')(sequelize, DataTypes)
+const ListingAccessDays = require('./../models/listingAccessDays.model')(sequelize, DataTypes)
+const ListingAccessHours = require('./../models/listingAccessHours.model')(sequelize, DataTypes)
 
 module.exports = {
   User,
@@ -25,5 +27,7 @@ module.exports = {
   Transaction,
   ListingPhotos,
   ListSettingsParent,
-  ListSettings
+  ListSettings,
+  ListingAccessDays,
+  ListingAccessHours
 }
