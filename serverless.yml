@@ -33,7 +33,7 @@ dotenv:
     - STRIPE_SECRET_KEY
     - API_BOOKING
     - EMAILS_API
-    - WEBSITE_URL
+    - NEW_LISTING_PROCESS_HOST
 
 provider:
   name: aws
@@ -56,7 +56,7 @@ provider:
     STRIPE_SECRET_KEY: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/STRIPE_SECRET_KEY~true}
     API_BOOKING: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/API_BOOKING~true}
     EMAILS_API: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/EMAILS_API~true}
-    WEBSITE_URL: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/WEBSITE_URL~true}
+    NEW_LISTING_PROCESS_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/NEW_LISTING_PROCESS_HOST~true}
 
 functions:
   getPaymentAccountByUserId:

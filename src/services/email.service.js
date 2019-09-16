@@ -145,9 +145,9 @@ const _totalSpaceWithoutFee = (basePrice, quantity = 1, period) => _round(basePr
 
 const _hash = value => crypto.createHash('sha256').update(value, 'utf8').digest('hex')
 
-const _generateAcceptLink = (bookingId, hostId) => `${process.env.WEBSITE_URL}/account/bookings?b=${bookingId}&a=${_hash(hostId + 'APPROVE')}`
+const _generateAcceptLink = (bookingId, hostId) => `${process.env.NEW_LISTING_PROCESS_HOST}/account/booking?b=${bookingId}&a=${_hash(hostId + 'APPROVE')}`
 
-const _generateDeclineLink = (bookingId, hostId) => `${process.env.WEBSITE_URL}/account/bookings?b=${bookingId}&a=${_hash(hostId + 'DECLINE')}`
+const _generateDeclineLink = (bookingId, hostId) => `${process.env.NEW_LISTING_PROCESS_HOST}/account/booking?b=${bookingId}&a=${_hash(hostId + 'DECLINE')}`
 
 module.exports = {
 
