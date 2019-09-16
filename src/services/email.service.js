@@ -211,8 +211,8 @@ module.exports = {
         checkOutDate: checkOut,
         basePrice: bookingObj.basePrice,
         total: bookingObj.totalPrice,
-        acceptLink: _generateAcceptLink(bookingId, hostObj.id),
-        declineLink: _generateDeclineLink(bookingId, hostObj.id)
+        acceptLink: _generateAcceptLink(bookingObj.bookingId, hostObj.id),
+        declineLink: _generateDeclineLink(bookingObj.bookingId, hostObj.id)
       }
       send('booking-request-email-host', hostObj.email, hostMetadata)
       // To guest...
