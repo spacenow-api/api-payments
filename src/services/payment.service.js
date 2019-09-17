@@ -4,7 +4,6 @@ const Stripe = require('stripe')
 
 const { getInstance: redisInstance } = require('./../helpers/redis.server')
 const bookingService = require('./booking.service')
-const emailService = require('./email.service')
 
 const {
   User,
@@ -175,7 +174,6 @@ async function doPayment(userId, { cardId, bookingId }) {
       bookingObj.currency
     )
     // Send Emails...
-    await emailService.sendBookingConfirmation(bookingObj, listingObj, locationObj, { ...userHostObj, ...userHostProfileObj }, { ...userGuestObj, ...userGuestProfileObj })
     return { status: 'OK', bookingId, bookingState: newBookingState }
   } catch (err) {
     throw err
