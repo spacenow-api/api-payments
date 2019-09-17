@@ -175,7 +175,7 @@ async function doPayment(userId, { cardId, bookingId }) {
       bookingObj.currency
     )
     // Send Emails...
-    await emailService.sendBookingConfirmation(bookingObj, listingObj, locationObj, { ...userHostObj, ...userHostProfileObj }, { ...userGuestObj, ...userGuestProfileObj })
+    // await emailService.sendBookingConfirmation(bookingObj, listingObj, locationObj, { ...userHostObj, ...userHostProfileObj }, { ...userGuestObj, ...userGuestProfileObj })
     return { status: 'OK', bookingId, bookingState: newBookingState }
   } catch (err) {
     throw err
