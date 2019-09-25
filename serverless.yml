@@ -11,7 +11,7 @@ custom:
     default: ${self:service}.${opt:stage, 'sandpit'}.cloud.spacenow.com
     prod: ${self:service}.spacenow.com
   subnet:
-    default:
+    sandpit:
       privateA: subnet-0c75bbd1ea60481d4
       privateB: subnet-070ac699acd775765
       privateC: subnet-0eca793083726120c
@@ -20,7 +20,7 @@ custom:
       privateB: subnet-010ee1d571a9ca82c
       privateC: subnet-069abf1da82eb3acc
   securityGroup:
-    default: sg-0dbf2b9d996f4c91e
+    sandpit: sg-0dbf2b9d996f4c91e
     prod: sg-00b4a2172f7e29276
   customDomain:
     domainName: ${self:custom.domains.${opt:stage, 'sandpit'}, self:custom.domains.default}
@@ -54,11 +54,11 @@ provider:
   region: ap-southeast-2
   vpc:
     securityGroupIds:
-      - ${self:custom.securityGroup.${opt:stage, 'sandpit'}, self:custom.securityGroup.default}
+      - ${self:custom.securityGroup.${opt:stage, 'sandpit'}}
     subnetIds:
-      - ${self:custom.subnet.${opt:stage, 'sandpit'}.privateA, self:custom.subnet.default.privateA}
-      - ${self:custom.subnet.${opt:stage, 'sandpit'}.privateB, self:custom.subnet.default.privateB}
-      - ${self:custom.subnet.${opt:stage, 'sandpit'}.privateC, self:custom.subnet.default.privateC}
+      - ${self:custom.subnet.${opt:stage, 'sandpit'}.privateA}
+      - ${self:custom.subnet.${opt:stage, 'sandpit'}.privateB}
+      - ${self:custom.subnet.${opt:stage, 'sandpit'}.privateC}
   environment:
     DATABASE_SCHEMA: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/DATABASE_SCHEMA~true}
     DATABASE_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/DATABASE_HOST~true}
