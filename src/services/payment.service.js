@@ -139,6 +139,9 @@ async function doPayment(userId, { cardId, bookingId }) {
     if (bookingObj.bookingState !== 'approved') {
       throw new Error(`Booking ${bookingId} is not approved.`)
     }
+    if (bookingObj.paymentState !== 'pending') {
+      throw new Error(`Booking ${bookingId} has already been paid.`)
+    }
     // Getting necessary data...
     const userGuestObj = await User.findOne({ where: { id: userId }, raw: true })
     const userGuestProfileObj = await getUserProfileByUserId(userId)
@@ -183,7 +186,7 @@ async function doPayment(userId, { cardId, bookingId }) {
       bookingObj.currency
     )
     // Send Emails...
-    return { status: 'OK', bookingId, bookingState: bookingObjUpdated }
+    return { status: 'OK', bookingId, bookingState: bookingObjUpdated.bookingState }
   } catch (err) {
     throw err
   }
