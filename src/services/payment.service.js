@@ -165,8 +165,6 @@ async function doPayment(userId, { cardId, bookingId }) {
       }
     })
     // Updating booking and transaction...
-    // const newBookingState = await bookingService.onUpdateStateById(bookingId, bookingObj.bookingType)
-    // await bookingService.onUpdateBookingChargeAndCard(bookingId, cardId, stripeCharge.id)
     const {
       data: { data: bookingObjUpdated }
     } = await bookingService.onUpdateBookingPayment(
