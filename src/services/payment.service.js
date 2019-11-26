@@ -137,7 +137,7 @@ async function doPayment(userId, { cardId, bookingId }) {
     // Validating booking state before payment...
     const { data: bookingObj } = await bookingService.getBookingById(bookingId)
     if (bookingObj.bookingState !== 'approved') {
-      throw new Error(`Booking ${bookingId} is not approve.`)
+      throw new Error(`Booking ${bookingId} is not approved.`)
     }
     // Getting necessary data...
     const userGuestObj = await User.findOne({ where: { id: userId }, raw: true })
