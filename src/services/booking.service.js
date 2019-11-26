@@ -10,20 +10,8 @@ module.exports = {
     return axios.get(`${process.env.API_BOOKING}/${id}`)
   },
 
-  onUpdateStateById: async (bookingId, bookingType) => {
-    let bookingData
-    if (!bookingType)
-      throw new Error('Booking Type incorrect or missing.')
-    if (bookingType === 'request') {
-      bookingData = await axios.put(`${process.env.API_BOOKING}/request/${bookingId}`)
-    } else {
-      bookingData = await axios.put(`${process.env.API_BOOKING}/approve/${bookingId}`)
-    }
-    return bookingData.data.data.bookingState
-  },
-
-  onUpdateBookingChargeAndCard: async (bookingId, cardId, chargeId) => {
-    return axios.put(`${process.env.API_BOOKING}/${bookingId}`, { sourceId: cardId, chargeId: chargeId })
+  onUpdateBookingPayment: async (bookingId, cardId, chargeId) => {
+    return axios.post(`${process.env.API_BOOKING}/paymentConfirmation`, { bookingId: bookingId, sourceId: cardId, chargeId: chargeId })
   },
 
   onUpdateTransaction: async (bookingId, chargeId, guestEmail, guestId, hostEmail, hostId, amount, currency) => {

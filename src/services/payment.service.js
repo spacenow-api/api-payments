@@ -134,10 +134,17 @@ async function doPayment(userId, { cardId, bookingId }) {
   if (!cardId || !bookingId)
     throw new Error('Payment details are incorrect or missing.')
   try {
+    // Validating booking state before payment...
+    const { data: bookingObj } = await bookingService.getBookingById(bookingId)
+    if (bookingObj.bookingState !== 'approved') {
+      throw new Error(`Booking ${bookingId} is not approved.`)
+    }
+    if (bookingObj.paymentState !== 'pending') {
+      throw new Error(`Booking ${bookingId} has already been paid.`)
+    }
     // Getting necessary data...
     const userGuestObj = await User.findOne({ where: { id: userId }, raw: true })
     const userGuestProfileObj = await getUserProfileByUserId(userId)
-    const { data: bookingObj } = await bookingService.getBookingById(bookingId)
     const userHostObj = await User.findOne({ where: { id: bookingObj.hostId }, raw: true })
     const userHostProfileObj = await getUserProfileByUserId(bookingObj.hostId)
     const listingObj = await Listing.findOne({ where: { id: bookingObj.listingId }, raw: true })
@@ -161,8 +168,13 @@ async function doPayment(userId, { cardId, bookingId }) {
       }
     })
     // Updating booking and transaction...
-    const newBookingState = await bookingService.onUpdateStateById(bookingId, bookingObj.bookingType)
-    await bookingService.onUpdateBookingChargeAndCard(bookingId, cardId, stripeCharge.id)
+    const {
+      data: { data: bookingObjUpdated }
+    } = await bookingService.onUpdateBookingPayment(
+      bookingId,
+      cardId,
+      stripeCharge.id
+    )
     await bookingService.onUpdateTransaction(
       bookingId,
       stripeCharge.id,
@@ -174,7 +186,7 @@ async function doPayment(userId, { cardId, bookingId }) {
       bookingObj.currency
     )
     // Send Emails...
-    return { status: 'OK', bookingId, bookingState: newBookingState }
+    return { status: 'OK', bookingId, bookingState: bookingObjUpdated.bookingState }
   } catch (err) {
     throw err
   }
