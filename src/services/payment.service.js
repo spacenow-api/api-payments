@@ -162,9 +162,11 @@ async function doPayment(userId, { cardId, bookingId }) {
         title: listingObj.title,
         guestEmail: userGuestObj.email,
         amount: bookingObj.totalPrice,
+        checkIn: bookingObj.checkIn,
+        checkOut: bookingObj.checkOut,
         customerId: userGuestProfileObj.customerId,
         hostName: userHostProfileObj.firstName,
-        listingAddress: `${locationObj.address}, ${locationObj.city}  ${locationObj.state} ${locationObj.zipcode}`,
+        listingAddress: `${locationObj.address1}, ${locationObj.city}  ${locationObj.state} ${locationObj.zipcode}`,
       }
     })
     // Updating booking and transaction...
