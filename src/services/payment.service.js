@@ -113,8 +113,12 @@ async function createPaymentCardByUserId(userId, { cardName, cardNumber, expMont
       }
     })
     const userProfileObj = await getUserProfileByUserId(userId)
-    await stripeInstance.customers.createSource(userProfileObj.customerId, { source: tokenCard.id });
-    return getPaymentCardByUserId(userId)
+    const cardCreated = await stripeInstance.customers.createSource(userProfileObj.customerId, { source: tokenCard.id })
+    const userStripeData = await getPaymentCardByUserId(userId)
+    return {
+      ...userStripeData,
+      lastCardCreated: cardCreated
+    }
   } catch (err) {
     throw err
   }
