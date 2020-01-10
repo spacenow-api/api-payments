@@ -121,6 +121,14 @@ functions:
           path: payments/{userId}/card/{cardId}
           method: delete
           cors: true
+  updateDefaultPaymentCard:
+    handler: src/functions/updateDefaultPaymentCard.main
+    memorySize: 1024
+    events:
+      - http:
+          path: payments/{userId}/card/{cardId}/default
+          method: put
+          cors: true
   createPayment:
     handler: src/functions/createPayment.main
     memorySize: 2048

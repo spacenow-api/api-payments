@@ -134,6 +134,19 @@ async function deletePaymentCardByUserId(userId, cardId) {
   }
 }
 
+async function updateDefaultPaymentCard(userId, cardId) {
+  if (!userId) throw new Error(`User ID not found.`)
+  try {
+    const { customerId } = await getUserProfileByUserId(userId)
+    const accountUpdated = await stripeInstance.customers.update(customerId, { default_source: cardId })
+    const cacheKey = _rKey(userId)
+    await redis.set(cacheKey, JSON.stringify(accountUpdated))
+    return accountUpdated
+  } catch (err) {
+    throw err
+  }
+}
+
 async function doPayment(userId, { cardId, bookingId }) {
   if (!cardId || !bookingId)
     throw new Error('Payment details are incorrect or missing.')
@@ -205,5 +218,6 @@ module.exports = {
   getPaymentCardByUserId,
   createPaymentCardByUserId,
   deletePaymentCardByUserId,
+  updateDefaultPaymentCard,
   doPayment
 }
