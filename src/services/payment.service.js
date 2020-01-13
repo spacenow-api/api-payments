@@ -3,6 +3,7 @@
 const Stripe = require('stripe')
 
 const { getInstance: redisInstance } = require('./../helpers/redis.server')
+const { log } = require('./../helpers/log.utils')
 const bookingService = require('./booking.service')
 
 const {
@@ -186,6 +187,7 @@ async function doPayment(userId, { cardId, bookingId }) {
         listingAddress: `${locationObj.address1}, ${locationObj.city}  ${locationObj.state} ${locationObj.zipcode}`,
       }
     })
+    log(bookingId, 'Payment confirmed at Stripe: ' + stripeCharge.id)
     // Updating booking and transaction...
     const {
       data: { data: bookingObjUpdated }
