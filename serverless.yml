@@ -24,11 +24,11 @@ custom:
     prod: sg-00b4a2172f7e29276
   customDomain:
     domainName: ${self:custom.domains.${opt:stage, 'sandpit'}, self:custom.domains.default}
-    basePath: ''
+    basePath: ""
     stage: ${opt:stage, 'sandpit'}
     certificateArn: ${ssm:/${opt:stageCert, 'SANDPIT'}/ACM_CERTIFICATE}
     createRoute53Record: true
-    endpointType: 'regional'
+    endpointType: "regional"
   prune:
     automatic: true
     number: 5
@@ -46,6 +46,7 @@ dotenv:
     - API_BOOKING
     - EMAILS_API
     - NEW_LISTING_PROCESS_HOST
+    - S3_BUCKET
 
 provider:
   name: aws
@@ -73,6 +74,22 @@ provider:
     NEW_LISTING_PROCESS_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/NEW_LISTING_PROCESS_HOST~true}
 
 functions:
+  put-object:
+    handler: src/functions/aws/s3/put-object.main
+    memorySize: 1024
+    events:
+      - http:
+          path: /v2/put-object/{id}
+          method: post
+          cors: true
+  put-object-from-url:
+    handler: src/functions/aws/s3/put-object-from-url.main
+    memorySize: 1024
+    events:
+      - http:
+          path: /v2/put-object-from-url/{id}
+          method: post
+          cors: true
   getPaymentAccountByUserId:
     handler: src/functions/getPaymentAccountByUserId.main
     memorySize: 1024
