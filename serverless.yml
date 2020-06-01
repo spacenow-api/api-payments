@@ -74,22 +74,6 @@ provider:
     NEW_LISTING_PROCESS_HOST: ${ssm:/${opt:stageCert, 'SANDPIT'}/SPACENOW/NEW_LISTING_PROCESS_HOST~true}
 
 functions:
-  put-object:
-    handler: src/functions/aws/s3/put-object.main
-    memorySize: 1024
-    events:
-      - http:
-          path: /v2/put-object/{id}
-          method: post
-          cors: true
-  put-object-from-url:
-    handler: src/functions/aws/s3/put-object-from-url.main
-    memorySize: 1024
-    events:
-      - http:
-          path: /v2/put-object-from-url/{id}
-          method: post
-          cors: true
   getPaymentAccountByUserId:
     handler: src/functions/getPaymentAccountByUserId.main
     memorySize: 1024
